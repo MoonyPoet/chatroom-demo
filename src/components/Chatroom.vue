@@ -30,8 +30,11 @@ export default {
   name: 'Chatroom',
   data () {
     return {
+      // 消息列表
       msgList: [],
+      // websocket对象
       websocket: null,
+      // websocket链接状态
       isConnected: false
     }
   },
@@ -42,6 +45,7 @@ export default {
     const wcUrl = 'ws://meet.xpro.im:8080/xgate/websocket/123?nickname=POET&is_store_history=true'
     this.websocket = window.WebSocket || window.MozWebSocket
 
+    // 初始化websocket
     if (window.WebSocket) {
       this.websocket = new WebSocket(wcUrl)
       this.websocket.onopen = this.doOpen
@@ -65,46 +69,51 @@ export default {
       console.log('连接异常!')
       this.isConnected = false
     },
+    // 接收websocket消息处理
     doMessage (message) {
       const data = JSON.parse(message.data)
       if (data.type === 'normal' || data.type === 'private') {
-        console.log(data.payload)
-        this.msgList.push(JSON.parse(data.payload))
+        let msg = JSON.parse(data.payload)
+
+        // 测试先写死头像和昵称
+        msg.info['avatar'] = 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1577619139562&di=e1d0e898cf2997cfbf095083b95e8782&imgtype=0&src=http%3A%2F%2Fcdn.duitang.com%2Fuploads%2Fitem%2F201412%2F17%2F20141217211542_CYRCV.jpeg'
+        msg.info['name'] = data.from
+        // 加入消息列表
+        this.msgList.push(msg)
       }
     },
-    execCommand (name, args = null) {
-      document.execCommand(name, false, args)
-    },
+    // 插入图片
     insertImg (e) {
-      console.log(e)
       let reader = new FileReader()
-      let file = e.target.files[0]
 
       reader.onload = () => {
-        let base64Img = reader.result
-
-        this.execCommand('insertImage', base64Img)
+        // 渲染图片至富文本
+        document.execCommand('insertImage', false, reader.result)
+        // 清空图片选择器
         document.querySelector('.img-btn').value = ''
       }
 
-      reader.readAsDataURL(file)
+      reader.readAsDataURL(e.target.files[0])
     },
+    // 发送消息
     sendMsg () {
       const msg = {
         type: 'user',
         info: {
-          avatar: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1577619139562&di=e1d0e898cf2997cfbf095083b95e8782&imgtype=0&src=http%3A%2F%2Fcdn.duitang.com%2Fuploads%2Fitem%2F201412%2F17%2F20141217211542_CYRCV.jpeg',
-          name: 'poet',
           content: document.querySelector('.edit-view').innerHTML
         }
       }
+
       this.websocket.send(JSON.stringify(msg))
+      // 清空富文本
       document.querySelector('.edit-view').innerHTML = ''
     },
+    // 选择图片
     pickPhoto () {
       document.querySelector('.edit-view').focus()
       document.querySelector('.img-btn').click()
     },
+    // 模拟发送系统消息
     sendSysMsg () {
       const msg = {
         type: 'system',
@@ -112,13 +121,13 @@ export default {
           text: 'System Information!'
         }
       }
+
       this.websocket.send(JSON.stringify(msg))
     }
   }
 }
 </script>
 
-<!-- Add 'scoped' attribute to limit CSS to this component only -->
 <style scoped>
 .img-btn {
   display: none;

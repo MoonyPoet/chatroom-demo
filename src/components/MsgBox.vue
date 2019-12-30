@@ -20,6 +20,7 @@ export default {
     }
   },
   computed: {
+    // 根据消息类型调用不同消息渲染组件
     comp () {
       let compName = ''
 

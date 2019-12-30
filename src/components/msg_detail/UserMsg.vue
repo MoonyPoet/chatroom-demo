@@ -34,7 +34,9 @@ export default {
   methods: {
     // 根据消息类型分类存储
     cutMsg () {
+      // 取图片前文字
       let textBfImg = /.+?(?=<img)/.exec(this.contentTemp)
+      // 取图片
       let img = /^<img src="(.*?)">/.exec(this.contentTemp)
 
       if (textBfImg) {
@@ -44,6 +46,7 @@ export default {
             text: textBfImg[0]
           }
         )
+        // 去除已分类消息内容
         this.contentTemp = this.contentTemp.replace(/.+?(?=<img)/, '')
         this.cutMsg()
       } else if (img) {
@@ -53,9 +56,10 @@ export default {
             src: img[1]
           }
         )
+        // 去除已分类消息内容
         this.contentTemp = this.contentTemp.replace(/^<img src="(.*?)">/, '')
         this.cutMsg()
-      } else if (this.contentTemp.length > 0) {
+      } else if (this.contentTemp.length > 0) { // 提取最后文本
         this.msgList.push(
           {
             type: 'text',
